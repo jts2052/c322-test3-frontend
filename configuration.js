@@ -1,7 +1,7 @@
-const mode = 0;
+const mode = 1;
 
 const host_local = "http://localhost:8080";
-const host_remote = "https://ducks-service-???.onrender.com";
+const host_remote = "https://c322-test3-backend-90xx.onrender.com";
 
 function getHost() {
     return (mode == 0) ? host_local : host_remote;
@@ -38,7 +38,8 @@ let configuration = {
 updateTheNavigationBar();
 
 async function updateTheNavigationBar() {
-    const navigation = document.getElementsByClassName("topnav")[0];
+    const navigation = document.getElementById("navigation");
+    console.log(navigation);
     let loginTag = navigation.children[navigation.children.length - 1];
     if(configuration.isLoggedIn()) {
         loginTag.innerHTML = 
@@ -51,9 +52,9 @@ async function updateTheNavigationBar() {
 
 
 async function signup() {
-    let email = document.getElementById("email").value;
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("password").value;
+    let email = document.getElementById("emailReg").value;
+    let username = document.getElementById("userReg").value;
+    let password = document.getElementById("passReg").value;
     let customer = {email:email, username: username, password: password}
     let request = {
         method: "POST",
@@ -66,15 +67,19 @@ async function signup() {
         let response = await fetch(getHost() + "/signup", request);
         if(response.status == 200) {  
             alert("The registration was successful!")
+            const token = await response.text();
+            saveTheToken(token);
             location.href = "login.html";
 
         } else {
-            console.log(`response status:${response.status}`);            
+            console.log(`response status:${response.status}`);     
+            removeTheToken();  
             alert("Something went wrong!");
         }
       }
       catch(error) {
-        console.log(error);        
+        console.log(error);    
+        removeTheToken();    
         alert("Something went wrong!");
       }    
 }
@@ -82,8 +87,8 @@ async function signup() {
 
 
 async function login() {    
-    let username = document.getElementById("username").value;
-    let password = document.getElementById("password").value;
+    let username = document.getElementById("user").value;
+    let password = document.getElementById("pass").value;
     let customer = {username: username, password: password}
     let request = {
         method: "POST",

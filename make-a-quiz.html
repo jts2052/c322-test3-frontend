@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="make-a-quiz.css" />
   </head>
   <body>
-    <ul class="topnav">
+    <ul id="navigation" class="topnav">
       <li><a href="index.html">Home</a></li>
       <li><a href="add-question.html">Add questions</a></li>
       <li><a class="active" href="make-a-quiz.html">Create a quiz</a></li>
@@ -38,8 +38,9 @@
       <div id="quiz"></div>
     </div>
 
+    <script src="configuration.js"></script>
     <script>
-      let host = "http://localhost:8080";
+      let host = configuration.host();
       let questions = [];
       let list = document.getElementById("list");
       let quiz = document.getElementById("quiz");
@@ -51,7 +52,11 @@
       displayTheQuestions();
 
       async function getAll() {
-        let response = await fetch(host + "/questions");
+        let response = await fetch(host + "/questions", {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
         let result = await response.json();
         return result;
       }
@@ -78,21 +83,39 @@
             console.log(quizQuestions);
           };
           div.className = "card";
+          let img = await fetch(host + "/questions/" + question.id + "/image", {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+          });
+          img = await img.blob();
           let innerHtml = `
        
-      <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+      <img src=${URL.createObjectURL(img)} alt="question" style="width:100%">
       <div class="container">
         <h4><b>${question.id}</b></h4> 
         <p>${question.description}</p>
         <form>
-            <input type="radio" id="q${question.id}ptionA" name="q2Answer" value="A">
-            <label for="q${question.id}ptionA">${question.choices[0]}</label><br>
+            <input type="radio" id="q${
+              question.id
+            }ptionA" name="q2Answer" value="A">
+            <label for="q${question.id}ptionA">${
+            question.choices[0]
+          }</label><br>
 
-            <input type="radio" id="q${question.id}ptionB" name="q2Answer" value="B">
-            <label for="q${question.id}ptionB">${question.choices[1]}</label><br>
+            <input type="radio" id="q${
+              question.id
+            }ptionB" name="q2Answer" value="B">
+            <label for="q${question.id}ptionB">${
+            question.choices[1]
+          }</label><br>
 
-            <input type="radio" id="q${question.id}ptionC" name="q2Answer" value="C">
-            <label for="q${question.id}ptionC">${question.choices[2]}</label><br>       
+            <input type="radio" id="q${
+              question.id
+            }ptionC" name="q2Answer" value="C">
+            <label for="q${question.id}ptionC">${
+            question.choices[2]
+          }</label><br>       
         </form> 
       </div>
    
@@ -112,8 +135,12 @@
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: "Bearer " + localStorage.getItem("token"),
             },
-            body: JSON.stringify({"title": quizTitle, "questionIds": quizQuestions}),
+            body: JSON.stringify({
+              title: quizTitle,
+              questionIds: quizQuestions,
+            }),
           };
         } else {
           endpoint = host + "/quizzes/" + quizId;
@@ -121,18 +148,22 @@
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              Authorization: "Bearer " + localStorage.getItem("token"),
             },
-            body: JSON.stringify({"id": quizId, "title": quizTitle, "questionIds": quizQuestions}),
+            body: JSON.stringify({
+              id: quizId,
+              title: quizTitle,
+              questionIds: quizQuestions,
+            }),
           };
         }
 
         let response = await fetch(endpoint, request);
-        if(response.status == 200) {
+        if (response.status == 200) {
           quizId = await response.json();
           alert("The quiz was saved successfully!");
-        }
-        else {
-          alert("The quiz was not saved. Something went wrong.")
+        } else {
+          alert("The quiz was not saved. Something went wrong.");
         }
       }
 

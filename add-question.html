@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="cards.css">
   </head>
   <body>
-    <ul class="topnav">
-      <li><a  href="index.html">Home</a></li>
+    
+    <ul id="navigation" class="topnav">
+      <li><a href="index.html">Home</a></li>
       <li><a class="active" href="add-question.html">Add questions</a></li>
       <li><a href="make-a-quiz.html">Create a quiz</a></li>
       <li><a href="take-a-quiz.html">Take a quiz</a></li>
@@ -58,13 +59,18 @@
 
     <div id="list" class="cards"></div>
 
+    <script src="configuration.js"></script>
     <script>
-      let host = "http://localhost:8080";
+      let host = configuration.host();
       let questions = [];
       displayTheQuestions();
 
       async function getAll() {
-        let response = await fetch(host + "/questions");
+        let response = await fetch(host + "/questions", {
+          headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+          }
+        });
         let result = await response.json();
         return result;
       }
@@ -80,9 +86,15 @@
         for (let question of questions) {
           let div = document.createElement("div");
           div.className = "card";
+          let img = await fetch(host + "/questions/" + question.id + "/image", {
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token"),
+            },
+          });
+          img = await img.blob();
           let innerHtml = `
          
-        <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+        <img src=${URL.createObjectURL(img)} alt="question" style="width:100%">
         <div class="container">
           <h4><b>${question.id}</b></h4> 
           <p>${question.description}</p>
@@ -133,6 +145,7 @@
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": "Bearer " + localStorage.getItem("token")
           },
           body: JSON.stringify(question),
         };
@@ -160,6 +173,9 @@
         let request = {
           method: "POST",
           body: formData,
+          headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+          },
         };
         let response = await fetch(
           host + "/questions/" + id + "/image",

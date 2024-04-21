@@ -11,13 +11,13 @@
   </head>
 
   <body>
-    <ul id="navigation" class="topnav" >
-        <li><a href="index.html">Home</a></li>
-        <li><a href="add-question.html">Add questions</a></li>
-        <li><a  href="make-a-quiz.html">Create a quiz</a></li>
-        <li><a class="active" href="take-a-quiz.html">Take a quiz</a></li>
-        <li class="right"><a href="login.html">Login</a></li>
-      </ul>
+    <ul id="navigation" class="topnav">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="add-question.html">Add questions</a></li>
+      <li><a class="active" href="make-a-quiz.html">Create a quiz</a></li>
+      <li><a href="take-a-quiz.html">Take a quiz</a></li>
+      <li class="right"><a href="login.html">Login</a></li>
+    </ul>
     <div id="screen" class="screen">
       <div id="item" ></div>
       <div id="controls" class="controls">
@@ -27,8 +27,9 @@
       </div>
     </div>
 
+    <script src="configuration.js"></script>
     <script>
-      let host = "http://localhost:8080";
+      let host = configuration.host();
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get("id");
       let quiz = null;
@@ -42,7 +43,11 @@
       startTheQuiz();
 
       async function startTheQuiz() {
-        let response = await fetch(host + "/quizzes/" + id);
+        let response = await fetch(host + "/quizzes/" + id, {
+          headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+            }
+          });
         quiz = await response.json();
         await displayTheQuestion(0);
       }
@@ -112,9 +117,16 @@
       async function presentTheQuestion(question) {
         item.innerHTML = "";
         let div = document.createElement("div");
-        div.className = "card";        
+        div.className = "card";
+        let img = await fetch(host + "/questions/" + question.id + "/image", 
+        {
+          headers: {
+            "Authorization": "Bearer " + localStorage.getItem("token")
+          }
+        });
+        img = await img.blob();
         let innerHtml = `
-         <img src="http://localhost:8080/questions/${question.id}/image" alt="question" style="width:100%">
+         <img src=${URL.createObjectURL(img)} alt="question" style="width:100%">
          <div class="container">
            <h4><b>${question.id}</b></h4>
            <p>${question.description}</p>
